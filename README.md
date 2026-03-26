@@ -78,6 +78,12 @@ python demo_cli.py
 
 Команда выхода: `exit`.
 
+### 3. Запустить автотесты
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 ## Пример сценария
 
 ```text
