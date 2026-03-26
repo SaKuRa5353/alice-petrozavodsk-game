@@ -1,5 +1,7 @@
 # Alice Petrozavodsk Game
 
+![CI](https://github.com/SaKuRa5353/alice-petrozavodsk-game/actions/workflows/ci.yml/badge.svg)
+
 Голосовой учебный навык для Алисы: викторина «Угадай достопримечательность Петрозаводска».
 
 ## О проекте
@@ -15,12 +17,14 @@
 
 ```text
 .
+├── .github/workflows/ci.yml    # CI: автозапуск тестов в GitHub Actions
 ├── alice_handler.py            # Webhook для Яндекс Диалогов
 ├── demo_cli.py                 # Локальный CLI-запуск
 ├── game_engine.py              # Игровая логика и состояние
 ├── landmarks.py                # База достопримечательностей
 ├── requirements.txt            # Зависимости (минимальный набор)
 ├── teacher_email_template.md   # Шаблон письма преподавателю
+├── tests/                      # Набор unit-тестов
 └── wikiversity_quiz.wiki       # Материал для Викиверситета
 ```
 
@@ -83,6 +87,15 @@ python demo_cli.py
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+Тесты покрывают:
+- игровую логику (`tests/test_game_engine.py`);
+- webhook-обработчик (`tests/test_alice_handler.py`).
+
+## CI
+
+В проекте настроен GitHub Actions workflow (`.github/workflows/ci.yml`),
+который автоматически запускает тесты при каждом `push` и `pull request` в `main`.
 
 ## Пример сценария
 
