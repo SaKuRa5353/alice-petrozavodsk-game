@@ -12,6 +12,19 @@
 Проект разделен на независимый игровой движок и webhook-обработчик для Яндекс Диалогов,
 поэтому логику легко тестировать локально через CLI.
 
+## Структура репозитория
+
+```text
+.
+├── alice_handler.py
+├── demo_cli.py
+├── game_engine.py
+├── landmarks.py
+├── requirements.txt
+├── teacher_email_template.md
+└── wikiversity_quiz.wiki
+```
+
 ## Ключевые возможности
 
 - 5 случайных вопросов в одной игре.
@@ -35,20 +48,32 @@
 - `alice_handler.py` - webhook-обработчик для Яндекс Диалогов.
 - `demo_cli.py` - локальный консольный запуск для быстрой проверки.
 
-## Быстрый старт
+## Условия запуска
 
-### 1) Клонирование и вход в проект
+- Python 3.11 или выше.
+- Поддерживаемая ОС: Linux, macOS, Windows.
+- Для локального CLI-запуска дополнительные библиотеки не обязательны.
+- Для webhook-сценария нужен доступ к платформе размещения (например, Yandex Cloud Functions).
 
-```bash
-git clone https://github.com/SaKuRa5353/alice-petrozavodsk-game.git
-cd alice-petrozavodsk-game
-```
+## Как запускать
 
-### 2) Локальный запуск через CLI
+### 1) Подготовка окружения (рекомендуется)
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
+```
+
+Для Windows (PowerShell):
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+### 2) Запуск игры в консоли
+
+```bash
 python demo_cli.py
 ```
 
@@ -93,19 +118,6 @@ python demo_cli.py
 3. Разверните `alice_handler.py` (например, в Yandex Cloud Functions).
 4. Укажите URL функции в настройках навыка.
 5. Проверьте сценарии `помощь`, `сдаюсь`, `заново`.
-
-## Структура репозитория
-
-```text
-.
-├── alice_handler.py
-├── demo_cli.py
-├── game_engine.py
-├── landmarks.py
-├── requirements.txt
-├── teacher_email_template.md
-└── wikiversity_quiz.wiki
-```
 
 ## Автор
 
