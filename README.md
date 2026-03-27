@@ -91,6 +91,7 @@ python -m unittest discover -s tests -v
 Тесты покрывают:
 - игровую логику (`tests/test_game_engine.py`);
 - webhook-обработчик (`tests/test_alice_handler.py`).
+- валидацию качества данных (`tests/test_landmarks_data.py`).
 
 ## CI
 
