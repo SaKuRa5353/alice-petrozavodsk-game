@@ -1,6 +1,53 @@
 == Мини-викторина по курсу "Навыки Алисы" ==
 Вставьте этот блок в конец выбранной страницы курса.
 
+== Коротко о реализации навыка ==
+Ниже приведены фрагменты кода с пояснениями, которые можно использовать в статье курса.
+
+=== Обработка команд пользователя (Python) ===
+<syntaxhighlight lang="python">
+# Нормализуем пользовательский ввод и обрабатываем служебные команды.
+def handle_user_input(raw_text: str, state: GameState) -> tuple[str, GameState]:
+	text = normalize_text(raw_text)
+
+	if text in {"помощь", "help"}:
+		if not state.in_progress:
+			start_text, state = _start_new_game(state)
+			return help_text() + "\n\n" + start_text, state
+		return help_text(), state
+
+	if text in {"заново", "начать заново", "start", "старт"}:
+		return _start_new_game(state)
+</syntaxhighlight>
+
+=== Минимальный webhook-обработчик ===
+<syntaxhighlight lang="python">
+# Если реплика пустая, запускаем стартовый сценарий.
+def handler(event: dict, context: object) -> dict:
+	request = event.get("request", {})
+	session = event.get("session", {})
+
+	user_id = session.get("user_id") or session.get("application", {}).get("application_id", "anonymous")
+	user_text = request.get("original_utterance", "").strip()
+	if not user_text:
+		user_text = "старт"
+
+	reply_text, updated_state = handle_user_input(user_text, SESSIONS.get(user_id, GameState()))
+	SESSIONS[user_id] = updated_state
+
+	return {
+		"version": "1.0",
+		"response": {"text": reply_text, "end_session": False},
+	}
+</syntaxhighlight>
+
+=== Что проверяется автотестами ===
+* старт новой игры и корректное состояние сессии;
+* команды ''помощь'', ''сдаюсь'', ''заново'';
+* проверка правильного ответа;
+* завершение игры и подсчет итогового результата;
+* корректная работа webhook-обработчика.
+
 <quiz display=simple>
 {Какой тип навыка позволяет использовать собственный сервер и webhook?}
 + Навык с внешним webhook URL
