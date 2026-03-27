@@ -22,6 +22,7 @@ class GameState:
 
 
 def normalize_text(text: str) -> str:
+    # Normalize punctuation and spacing so free-form user input is easier to match.
     text = text.lower().strip()
     text = text.replace("ё", "е")
     text = re.sub(r"[^a-zа-я0-9\s-]", "", text)
@@ -65,6 +66,7 @@ def _start_new_game(state: GameState) -> Tuple[str, GameState]:
     state.score = 0
     state.asked_count = 0
     state.queue = random.sample(LANDMARKS, k=min(TOTAL_QUESTIONS, len(LANDMARKS)))
+    # Move one landmark from queue into the current round.
     state.current_landmark = state.queue.pop(0)
 
     text = (
@@ -88,6 +90,7 @@ def _next_question_or_finish(state: GameState) -> str:
         state.current_landmark = None
         return "Недостаточно данных для продолжения игры."
 
+    # Advance to the next prepared landmark.
     state.current_landmark = state.queue.pop(0)
     return build_question(state.current_landmark, state.asked_count + 1)
 

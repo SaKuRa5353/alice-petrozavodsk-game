@@ -1,5 +1,7 @@
 """Data set of Petrozavodsk landmarks used by the quiz game."""
 
+# Each item is one quiz card used by game_engine.py.
+
 LANDMARKS = [
     {
         "name": "Онежская набережная",

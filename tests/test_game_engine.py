@@ -7,6 +7,7 @@ from landmarks import LANDMARKS
 
 class TestGameEngine(unittest.TestCase):
     def setUp(self) -> None:
+        # Fixed order makes tests deterministic.
         self.fixed_landmarks = LANDMARKS[:5]
 
     def _start_game(self) -> tuple[str, GameState]:

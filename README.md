@@ -22,8 +22,8 @@
 ├── demo_cli.py                 # Локальный CLI-запуск
 ├── game_engine.py              # Игровая логика и состояние
 ├── landmarks.py                # База достопримечательностей
+├── PROGRESS.md                 # Краткий журнал прогресса
 ├── requirements.txt            # Зависимости (минимальный набор)
-├── teacher_email_template.md   # Шаблон письма преподавателю
 ├── tests/                      # Набор unit-тестов
 └── wikiversity_quiz.wiki       # Материал для Викиверситета
 ```

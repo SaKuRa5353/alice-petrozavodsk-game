@@ -7,6 +7,7 @@ def main() -> None:
     state = GameState()
     print("Напиши любой текст, чтобы начать игру. Команда выхода: exit")
 
+    # The same state instance is reused to simulate one user session.
     while True:
         user_input = input("> ").strip()
         if user_input.lower() == "exit":

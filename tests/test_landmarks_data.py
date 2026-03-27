@@ -5,6 +5,7 @@ from landmarks import LANDMARKS
 
 
 class TestLandmarksData(unittest.TestCase):
+    # Contract expected by the game engine and content workflow.
     required_keys = {"name", "aliases", "description", "hint", "location", "year", "sources"}
 
     def test_landmarks_dataset_is_not_empty(self) -> None:

@@ -5,6 +5,7 @@ from alice_handler import SESSIONS, GameState, _build_response, handler
 
 class TestAliceHandler(unittest.TestCase):
     def setUp(self) -> None:
+        # Keep tests isolated from each other.
         SESSIONS.clear()
 
     def test_build_response_shape(self) -> None:

@@ -28,6 +28,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     request = event.get("request", {})
     session = event.get("session", {})
 
+    # Keep a stable key even when user_id is absent in some test/debug payloads.
     user_id = session.get("user_id") or session.get("application", {}).get("application_id", "anonymous")
     is_new = bool(session.get("new"))
     user_text = request.get("original_utterance", "").strip()
@@ -37,6 +38,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     state = SESSIONS[user_id]
 
+    # Empty utterance often comes from "open skill" events.
     if not user_text:
         user_text = "старт"
 
