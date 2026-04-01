@@ -1,51 +1,72 @@
-== Развёртывание навыка Петрозаводск Quiz на Render ==
+## Развёртывание навыка Петрозаводск Quiz на Render
 
-=== Быстрое развёртывание (5 минут) ===
+### 1. Подготовка перед публикацией
 
-1. **Перейди на https://render.com** и создай аккаунт (через GitHub проще)
+Проверь локально:
 
-2. **В Render:**
-   - Нажми "New" → "Web Service"
-   - Выбери репозиторий `alice-petrozavodsk-game`
-   - Настройки:
-     * Name: любое имя (например, `petrozavodsk-quiz`)
-     * Runtime: Python 3
-     * Build command: `pip install -r requirements.txt`
-     * Start command: `gunicorn app:app`
-   - Нажми "Deploy"
-   - Ждёшь 2-3 минуты, пока развернётся
+```bash
+python -m unittest discover -s tests -v
+```
 
-3. **Когда развёрнется:**
-   - Получишь URL вида: `https://petrozavodsk-quiz.onrender.com`
-   - Проверь, что работает: https://твой-url.onrender.com/health
-   - Должен вернуться статус `{"status": "ok"}`
+Если тесты зелёные, отправь актуальный код в GitHub.
 
-4. **Webhook URL для Яндекс Диалогов:**
-   - `https://твой-url.onrender.com/webhook`
+### 2. Публикация Web Service в Render
 
-=== Регистрация навыка в Яндекс Диалогах ===
+1. Открой https://render.com и войди через GitHub.
+2. Нажми New -> Web Service.
+3. Выбери репозиторий alice-petrozavodsk-game.
+4. Укажи параметры:
+   - Runtime: Python 3
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `gunicorn app:app`
+5. Нажми Deploy.
 
-1. **Перейди на https://dialogs.yandex.ru** (вход через Яндекс аккаунт)
+Через 2-3 минуты сервис получит адрес вида:
+`https://petrozavodsk-quiz.onrender.com`
 
-2. **Создай новый навык:**
-   - "Создать навык"
-   - Название: "Петрозаводск Quiz" (или как хочешь)
-   - Описание: "Угадай достопримечательности Петрозаводска"
-   - Вкус: может быть любым
+### 3. Проверка публичного сервиса
 
-3. **Настроить webhook:**
-   - Раздел "Интеграция" или "Webhook"
-   - URL обработчика (HTTPS): `https://твой-url.onrender.com/webhook`
-   - Сохрани
+Проверь health endpoint:
 
-4. **Протестировать:**
-   - In Yandex Assistant app or web interface: включи навык
-   - Скажи "старт" или просто откройся навык
-   - Начнётся игра
+```bash
+curl https://твой-url.onrender.com/health
+```
 
-=== Что передаёшь преподавателю ===
+Ожидаемый ответ:
 
-Когда всё готово, дай преподавателю:
-- Название навыка (как найти в Яндекс Диалогах)
-- Или скриншот работающего навыка в приложении
-- Webhook URL: `https://твой-url.onrender.com/webhook` (для проверки)
+```json
+{"status":"ok"}
+```
+
+Проверь webhook локальным тестовым запросом:
+
+```bash
+curl -X POST https://твой-url.onrender.com/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request": {"original_utterance": "старт"},
+    "session": {"new": true, "user_id": "demo-user"}
+  }'
+```
+
+### 4. Привязка webhook в Яндекс Диалогах
+
+1. Открой https://dialogs.yandex.ru.
+2. Создай навык с внешним webhook.
+3. В поле URL обработчика укажи:
+   `https://твой-url.onrender.com/webhook`
+4. Сохрани и протестируй навык в интерфейсе Диалогов и в приложении Алисы.
+
+### 5. Чеклист готовности к сдаче
+
+- Навык запускается в приложении Алисы.
+- Команды `старт`, `помощь`, `сдаюсь`, `заново` работают.
+- Публичный `/health` отвечает со статусом ok.
+- Публичный `/webhook` принимает JSON и возвращает корректный ответ формата Алисы.
+
+### 6. Что отправить преподавателю
+
+1. Название навыка или ссылку на карточку навыка в Яндекс Диалогах.
+2. Публичный webhook URL.
+3. Скриншоты или короткое видео работы навыка в приложении Алисы.
+4. Ссылку на страницу курса в Викиверситете.

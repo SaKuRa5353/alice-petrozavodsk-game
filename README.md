@@ -95,6 +95,7 @@ python -m unittest discover -s tests -v
 Тесты покрывают:
 - игровую логику (`tests/test_game_engine.py`);
 - webhook-обработчик (`tests/test_alice_handler.py`).
+- HTTP-слой Flask (`tests/test_app.py`).
 - валидацию качества данных (`tests/test_landmarks_data.py`).
 
 ## Развёртывание webhook
@@ -121,6 +122,14 @@ python -m unittest discover -s tests -v
 1. https://dialogs.yandex.ru → создай новый навык
 2. Укажи webhook URL: `https://твой-url/webhook`
 3. Опубликуй и тестируй в Яндекс.Ассистент
+
+### Что показать преподавателю
+
+Для быстрой приёмки подготовь:
+1. Ссылку на опубликованный навык в Яндекс Диалогах или название навыка для поиска.
+2. Рабочий webhook URL (HTTPS): `https://твой-url/webhook`.
+3. Короткое видео или 2-3 скриншота запуска навыка в приложении Алисы.
+4. Ссылку на страницу курса Викиверситета.
 
 ## CI
 

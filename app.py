@@ -6,7 +6,6 @@ by Yandex Dialogs from the public internet.
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
@@ -22,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 def webhook() -> tuple[Any, int]:
     """Handle Yandex Dialogs webhook requests."""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
         if not data:
             return jsonify({"error": "No JSON body"}), 400
 
