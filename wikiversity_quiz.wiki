@@ -1,80 +1,404 @@
-== Мини-викторина по курсу "Навыки Алисы" ==
-Вставьте этот блок в конец выбранной страницы курса.
+== Навыки Яндекс.Алисы: Разработка интерактивного квеста ==
 
-== Коротко о реализации навыка ==
-Ниже приведены фрагменты кода с пояснениями, которые можно использовать в статье курса.
+Этот курс учит создавать навыки (Skills) для Яндекс.Алисы с использованием webhook. Мы разработаем и развернём интерактивную игру-викторину про достопримечательности Петрозаводска.
 
-=== Обработка команд пользователя (Python) ===
-<syntaxhighlight lang="python">
-# Нормализуем пользовательский ввод и обрабатываем служебные команды.
-def handle_user_input(raw_text: str, state: GameState) -> tuple[str, GameState]:
-	text = normalize_text(raw_text)
+== Введение ==
 
-	if text in {"помощь", "help"}:
-		if not state.in_progress:
-			start_text, state = _start_new_game(state)
-			return help_text() + "\n\n" + start_text, state
-		return help_text(), state
+Яндекс.Алиса — голосовой ассистент, который может выполнять разные задачи. Навыки (Skills) — это расширения, которые добавляют новую функциональность. В этом курсе мы создадим навык, который:
+* Задаёт пользователю вопросы о достопримечательностях
+* Проверяет правильность ответа
+* Показывает подсказку при необходимости
+* Подсчитывает итоговый результат
 
-	if text in {"заново", "начать заново", "start", "старт"}:
-		return _start_new_game(state)
+Для этого мы используем:
+* '''Python 3''' — язык программирования для основной логики
+* '''Webhook''' — публичный HTTPS URL, который Яндекс.Алиса вызывает при общении с пользователем
+* '''GitHub Actions''' — автоматизированное тестирование кода
+* '''Render.com''' — бесплатный хостинг для webhook
+
+== Архитектура навыка ==
+
+=== Компоненты ===
+
+Навык состоит из четырёх основных частей:
+
+; '''Game Engine (game_engine.py)'''
+: Содержит логику игры — обработка команд пользователя, проверка ответов, управление состоянием игры. Использует только стандартную библиотеку Python.
+
+; '''Landmarks Data (landmarks.py)'''
+: База данных из 10 достопримечательностей Петрозаводска. Каждая достопримечательность имеет название, подсказку, описание, источники.
+
+; '''Webhook Handler (alice_handler.py)'''
+: Функция, которая принимает HTTP-запросы от Яндекс.Алисы, обновляет состояние игры и возвращает ответ.
+
+; '''HTTP Server (app.py)'''
+: Flask-приложение, которое выставляет webhook наружу и позволяет развернуть навык на облачном сервере.
+
+=== Процесс взаимодействия ===
+
+Пользователь говорит "старт" → Яндекс.Алиса отправляет запрос на webhook → Flask-приложение вызывает alice_handler(request) → Handler использует game_engine для обновления состояния → Возвращается текстовый ответ → Яндекс.Алиса произносит ответ пользователю
+
+== Установка и локальный запуск ==
+
+=== Требования ===
+* Python 3.11+
+* Git
+* Интернет (для развёртывания на Render)
+
+=== Локальный запуск ===
+
+1. '''Клонируй репозиторий:'''
+<syntaxhighlight lang="bash">
+git clone https://github.com/<твой-логин>/alice-petrozavodsk-game.git
+cd alice-petrozavodsk-game
 </syntaxhighlight>
 
-=== Минимальный webhook-обработчик ===
+2. '''Создай виртуальное окружение:'''
+<syntaxhighlight lang="bash">
+python -m venv .venv
+source .venv/bin/activate  # На Windows: .venv\Scripts\activate
+</syntaxhighlight>
+
+3. '''Установи зависимости:'''
+<syntaxhighlight lang="bash">
+pip install -r requirements.txt
+</syntaxhighlight>
+
+4. '''Запусти тесты:'''
+<syntaxhighlight lang="bash">
+python -m unittest discover -s tests -v
+</syntaxhighlight>
+
+5. '''Попробуй игру в CLI:'''
+<syntaxhighlight lang="bash">
+python demo_cli.py
+</syntaxhighlight>
+
+В интерактивном режиме вводи:
+* <code>старт</code> — начать игру
+* <code>помощь</code> — показать подсказку
+* <code>сдаюсь</code> — сдаться и показать ответ
+* <code>заново</code> — начать заново
+
+== Примеры кода ==
+
+=== Нормализация текста ===
+
+Перед проверкой ответа нужно привести текст к единому виду:
+
 <syntaxhighlight lang="python">
-# Если реплика пустая, запускаем стартовый сценарий.
+def normalize_text(text: str) -> str:
+    """Удаляет пунктуацию, приводит к нижнему регистру."""
+    text = text.lower().strip()
+    # Удаляем пунктуацию: . ! ? , ; :
+    for char in ".,!?;:":
+        text = text.replace(char, "")
+    # Заменяем несколько пробелов на один
+    text = " ".join(text.split())
+    return text
+
+# Примеры:
+normalize_text("Онежская Набережная!") == "онежская набережная"
+normalize_text("памятник  петру I.") == "памятник петру i"
+</syntaxhighlight>
+
+=== Проверка ответа ===
+
+Ответ считается правильным, если он совпадает с названием достопримечательности или одним из её альтернативных названий (алиасов):
+
+<syntaxhighlight lang="python">
+def _is_correct_answer(user_text: str, landmark: dict) -> bool:
+    """Проверяет, совпадает ли ответ с названием или алиасом."""
+    normalized = normalize_text(user_text)
+    
+    # Проверяем название
+    if normalized == normalize_text(landmark["name"]):
+        return True
+    
+    # Проверяем каждый алиас (альтернативное название)
+    for alias in landmark.get("aliases", []):
+        if normalized == normalize_text(alias):
+            return True
+    
+    return False
+
+# Примеры:
+landmark = {
+    "name": "Онежская набережная",
+    "aliases": ["Набережная Онеги", "берег Онежского озера"]
+}
+_is_correct_answer("набережная онеги!") == True
+_is_correct_answer("музей") == False
+</syntaxhighlight>
+
+=== Структура данных достопримечательности ===
+
+Каждая достопримечательность хранится как словарь с несколькими полями:
+
+<syntaxhighlight lang="python">
+landmark = {
+    "name": "Памятник Петру I",
+    "aliases": [
+        "статуя петра первого",
+        "памятник императору"
+    ],
+    "description": "Памятник русскому царю и реформатору Петру I...",
+    "hint": "Стоит в центре города, в сквере",
+    "location": "Сквер у Ленинского проспекта",
+    "year": 1873,
+    "sources": [
+        "https://ru.wikipedia.org/wiki/Памятник_Петру_I_(Петрозаводск)",
+        "https://karelia.aif.ru/society/article/..."
+    ]
+}
+</syntaxhighlight>
+
+=== Webhook-обработчик ===
+
+Яндекс.Алиса отправляет JSON-запрос, наш о сработчик обновляет состояние и возвращает ответ:
+
+<syntaxhighlight lang="python">
 def handler(event: dict, context: object) -> dict:
-	request = event.get("request", {})
-	session = event.get("session", {})
+    """Основной обработчик webhook для Яндекс.Алисы."""
+    request = event.get("request", {})
+    session = event.get("session", {})
 
-	user_id = session.get("user_id") or session.get("application", {}).get("application_id", "anonymous")
-	user_text = request.get("original_utterance", "").strip()
-	if not user_text:
-		user_text = "старт"
+    # Получаем или генерируем ID пользователя
+    user_id = session.get("user_id") or session.get("application", {}).get("application_id", "anonymous")
+    
+    # Получаем учтение пользователя
+    user_text = request.get("original_utterance", "").strip()
 
-	reply_text, updated_state = handle_user_input(user_text, SESSIONS.get(user_id, GameState()))
-	SESSIONS[user_id] = updated_state
+    # Если сессия новая, инициируем игру
+    if session.get("new") or user_id not in SESSIONS:
+        SESSIONS[user_id] = GameState()
 
-	return {
-		"version": "1.0",
-		"response": {"text": reply_text, "end_session": False},
-	}
+    # Если пользователь ничего не сказал, начинаем
+    if not user_text:
+        user_text = "старт"
+
+    # Обрабатываем ввод пользователя
+    reply_text, updated_state = handle_user_input(user_text, SESSIONS[user_id])
+    SESSIONS[user_id] = updated_state
+
+    # Формируем ответ в формате Яндекс.Алисы
+    return {
+        "version": "1.0",
+        "response": {
+            "text": reply_text,
+            "end_session": False
+        }
+    }
 </syntaxhighlight>
 
-=== Что проверяется автотестами ===
-* старт новой игры и корректное состояние сессии;
-* команды ''помощь'', ''сдаюсь'', ''заново'';
-* проверка правильного ответа;
-* завершение игры и подсчет итогового результата;
-* корректная работа webhook-обработчика.
+=== Flask-приложение ===
+
+Для развёртывания webhook нужно выставить его через HTTP:
+
+<syntaxhighlight lang="python">
+from flask import Flask, request, jsonify
+from alice_handler import handler
+
+app = Flask(__name__)
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    """Точка входа webhook для Яндекс.Алисы."""
+    try:
+        data = request.get_json()
+        response = handler(data, None)
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/health", methods=["GET"])
+def health():
+    """Проверка здоровья приложения."""
+    return {"status": "ok"}, 200
+</syntaxhighlight>
+
+== Тестирование ==
+
+=== Автоматические тесты ===
+
+Проект включает три набора автотестов:
+
+; '''test_game_engine.py''' (6 тестов)
+: Проверяет основную логику игры: старт, команды, правильные ответы, завершение
+
+; '''test_alice_handler.py''' (4 теста)
+: Проверяет webhook-обработчик: структура ответа, пустой ввод, сессии, fallback
+
+; '''test_landmarks_data.py''' (6 тестов)
+: Проверяет качество данных: наличие полей, валидные URL, уникальность
+
+=== Запуск тестов ===
+
+<syntaxhighlight lang="bash">
+# Все тесты
+python -m unittest discover -s tests -v
+
+# Конкретный набор
+python -m unittest tests.test_game_engine -v
+</syntaxhighlight>
+
+=== GitHub Actions CI ===
+
+При каждом push автоматически запускаются тесты. Если тесты не прошли, merge будет заблокирован.
+
+== Развёртывание на Render ==
+
+=== Подготовка ===
+
+Нужны три файла:
+* '''requirements.txt''' — зависимости (Flask, gunicorn)
+* '''Procfile''' — как запустить приложение
+* '''runtime.txt''' — версия Python
+
+=== Пошаговое развёртывание ===
+
+1. Загрузи в GitHub:
+<syntaxhighlight lang="bash">
+git add -A && git commit -m "Deploy" && git push origin main
+</syntaxhighlight>
+
+2. Перейди на https://render.com и залогинься через GitHub
+
+3. Нажми "New" → "Web Service"
+
+4. Выбери репозиторий alice-petrozavodsk-game
+
+5. Настройки:
+* Name: petrozavodsk-quiz
+* Build: <code>pip install -r requirements.txt</code>
+* Start: <code>gunicorn app:app</code>
+
+6. Нажми "Deploy" и жди 2-3 минуты
+
+7. Получишь URL: <code>https://petrozavodsk-quiz.onrender.com</code>
+
+8. Webhook URL: <code>https://твой-url.onrender.com/webhook</code>
+
+== Регистрация в Яндекс.Диалогах ==
+
+1. https://dialogs.yandex.ru → "Создать навык"
+
+2. Заполни:
+* Название: "Петрозаводск Quiz"
+* Описание: "Угадай достопримечательности"
+
+3. Webhook: <code>https://твой-url.onrender.com/webhook</code>
+
+4. Опубликуй и тестируй в Яндекс.Ассистент
+
+== Типичная сессия игры ==
+
+; Пользователь: "старт"
+: Навык: "Угадай достопримечательность Петрозаводска. Первый вопрос. Это берег Онежского озера. Как называется?"
+
+; Пользователь: "онежская набережная"
+: Навык: "Верно! Вопрос 2 из 5. [следующий вопрос]"
+
+; Пользователь: "не знаю"
+: Навык: "Неправильно. Скажи 'помощь' или 'сдаюсь'."
+
+; Пользователь: "помощь"
+: Навык: "Подсказка: Стоит в центре города. Попробуй ещё раз."
+
+; (После 5 вопросов)
+: Навык: "Ты ответил правильно на 4 из 5. Спасибо за игру!"
+
+== Расширение навыка ==
+
+=== Добавление достопримечательностей ===
+
+В landmarks.py добавь:
+
+<syntaxhighlight lang="python">
+{
+    "name": "Новая достопримечательность",
+    "aliases": ["альтернативное название"],
+    "description": "Подробное описание...",
+    "hint": "Подсказка",
+    "location": "Месторасположение",
+    "year": 1999,
+    "sources": ["https://ru.wikipedia.org/..."]
+}
+</syntaxhighlight>
+
+Затем запусти тесты:
+
+<syntaxhighlight lang="bash">
+python -m unittest tests.test_landmarks_data -v
+</syntaxhighlight>
+
+== Часто задаваемые вопросы ==
+
+; '''Webhook не работает (404)'''
+: Проверь URL в Яндекс.Диалогах: должен быть <code>/webhook</code> в конце
+: Убедись, что развёртывание на Render завершилось (зелёный статус)
+
+; '''Алиса всегда говорит "Неправильно"'''
+: Проверь функцию _is_correct_answer() в game_engine.py
+: Убедись, что в landmarks.py есть алиасы для этой достопримечательности
+
+; '''На Render пишет "Build failed"'''
+: Проверь requirements.txt локально: <code>pip install -r requirements.txt</code>
+: Убедись, что Procfile содержит: <code>gunicorn app:app</code>
+
+== Мини-викторина ==
 
 <quiz display=simple>
-{Какой тип навыка позволяет использовать собственный сервер и webhook?}
-+ Навык с внешним webhook URL
-- Навык без backend-логики
-- Только офлайн-режим в приложении
-- Режим без интентов
+{Какой формат используется для общения между Яндекс.Алисой и webhook?}
++ JSON по HTTP POST
+- XML по FTP
+- CSV по SSH
+- Binary по WebSocket
 
-{Что нужно указать в Яндекс Диалогах для связи навыка с кодом?}
-+ HTTPS URL обработчика (webhook)
-- Ссылку на репозиторий GitHub
-- Только название навыка
-- Логин разработчика
-
-{Какая команда в игре должна показать правильный ответ и перейти к следующему вопросу?}
-+ сдаюсь
-- помощь
-- заново
-- выход
-
-{Сколько вопросов в учебной игре "Угадай достопримечательность Петрозаводска"?}
-+ 5
-- 3
-- 10
+{Сколько достопримечательностей в текущей версии игры?}
++ 10
+- 5
 - 15
+- 20
 
-{Что обычно хранится в структуре данных по достопримечательности?}
-+ Название, описание, подсказка, местоположение, год и источники
+{Какой сервис используется для бесплатного хостинга webhook?}
++ Render.com
+- AWS Lambda (платная)
+- Heroku (снял бесплатный уровень)
+- Azure
+
+{Какой файл нужен для развёртывания на Render?}
++ Procfile, requirements.txt, runtime.txt
+- только requirements.txt
+- только .github/workflows/ci.yml
+- только README.md
+
+{Какие основные команды поддерживает игра?}
++ помощь, сдаюсь, заново, старт
+- ввод ответа, начало, конец
+- помощь, сложность, микрофон
+- регистрация, профиль, выход
+
+{Что делает функция normalize_text?}
++ Приводит текст к нижнему регистру и удаляет пунктуацию
+- Переводит текст на другой язык
+- Шифрует данные
+- Сжимает размер текста
+
+{Как проверить, что webhook работает?}
++ curl на /health с JSON-запросом
+- Просто включить приложение
+- Только через Яндекс.Ассистент
+- Невозможно проверить локально
+
+{Когда запускаются автотесты GitHub Actions?}
++ При каждом push в репозиторий
+- Только по расписанию
+- Только если вручную запустить
+- Никогда
+
+{Что обычно хранится в структуре данных достопримечательности?}
++ Название, подсказка, описание, источники
 - Только название
 - Только координаты
 - Только изображение

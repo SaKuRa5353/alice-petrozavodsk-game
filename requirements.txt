@@ -1,2 +1,3 @@
-# Minimal dependencies for local API wrapper if needed
-# The core game itself uses only Python standard library.
+Flask==2.3.0
+gunicorn==20.1.0
+# Core game uses only Python standard library.

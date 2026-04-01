@@ -18,14 +18,18 @@
 ```text
 .
 ├── .github/workflows/ci.yml    # CI: автозапуск тестов в GitHub Actions
+├── app.py                      # Flask HTTP-сервер для webhook
 ├── alice_handler.py            # Webhook для Яндекс Диалогов
 ├── demo_cli.py                 # Локальный CLI-запуск
 ├── game_engine.py              # Игровая логика и состояние
 ├── landmarks.py                # База достопримечательностей
-├── PROGRESS.md                 # Краткий журнал прогресса
-├── requirements.txt            # Зависимости (минимальный набор)
+├── Procfile                    # Конфигурация развёртывания (Render)
+├── requirements.txt            # Зависимости
+├── runtime.txt                 # Версия Python для облака
+├── DEPLOYMENT.md               # Инструкция по развёртыванию
+├── PROGRESS.md                 # Журнал прогресса
 ├── tests/                      # Набор unit-тестов
-└── wikiversity_quiz.wiki       # Материал для Викиверситета
+└── wikiversity_quiz.wiki       # Полный курс для Викиверситета
 ```
 
 ## Возможности
@@ -93,11 +97,35 @@ python -m unittest discover -s tests -v
 - webhook-обработчик (`tests/test_alice_handler.py`).
 - валидацию качества данных (`tests/test_landmarks_data.py`).
 
+## Развёртывание webhook
+
+Для того чтобы навык работал в Яндекс.Ассистенте, нужно развернуть webhook на публичном сервере.
+
+### Быстрое развёртывание на Render (5 минут)
+
+1. Перейди на https://render.com и залогинься через GitHub
+2. Нажми "New" → "Web Service"
+3. Выбери этот репозиторий
+4. Заполни:
+   - Name: `petrozavodsk-quiz`
+   - Build: `pip install -r requirements.txt`
+   - Start: `gunicorn app:app`
+5. Нажми "Deploy"
+6. Когда готово, получишь URL вида: `https://petrozavodsk-quiz.onrender.com`
+7. Webhook URL для Яндекс.Диалогов: `https://твой-url/webhook`
+
+**Полная инструкция:** см. [DEPLOYMENT.md](DEPLOYMENT.md)
+
+### Регистрация навыка в Яндекс.Диалогах
+
+1. https://dialogs.yandex.ru → создай новый навык
+2. Укажи webhook URL: `https://твой-url/webhook`
+3. Опубликуй и тестируй в Яндекс.Ассистент
+
 ## CI
 
 В проекте настроен GitHub Actions workflow (`.github/workflows/ci.yml`),
 который автоматически запускает тесты при каждом `push` и `pull request` в `main`.
-
 ## Пример сценария
 
 ```text
