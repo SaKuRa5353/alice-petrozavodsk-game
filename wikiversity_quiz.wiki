@@ -229,6 +229,9 @@ def health():
 ; '''test_alice_handler.py''' (4 теста)
 : Проверяет webhook-обработчик: структура ответа, пустой ввод, сессии, fallback
 
+; '''test_app.py''' (3 теста)
+: Проверяет HTTP-слой Flask: endpoint <code>/health</code> и endpoint <code>/webhook</code>
+
 ; '''test_landmarks_data.py''' (6 тестов)
 : Проверяет качество данных: наличие полей, валидные URL, уникальность
 
@@ -360,6 +363,12 @@ python -m unittest tests.test_landmarks_data -v
 3. В Яндекс Диалогах сохранён корректный HTTPS URL webhook.
 4. В приложении Алисы игра проходит полный цикл из 5 вопросов.
 5. На странице Викиверситета есть разделы: архитектура, запуск, код, тестирование, деплой, quiz.
+
+Быстрая автоматическая проверка (локально):
+
+<syntaxhighlight lang="bash">
+python verify_webhook.py https://твой-url.onrender.com
+</syntaxhighlight>
 
 Что приложить к отчёту:
 

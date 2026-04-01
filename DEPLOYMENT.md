@@ -49,6 +49,12 @@ curl -X POST https://твой-url.onrender.com/webhook \
   }'
 ```
 
+Также можно проверить оба endpoint сразу:
+
+```bash
+python verify_webhook.py https://твой-url.onrender.com
+```
+
 ### 4. Привязка webhook в Яндекс Диалогах
 
 1. Открой https://dialogs.yandex.ru.
