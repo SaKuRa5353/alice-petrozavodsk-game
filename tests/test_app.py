@@ -21,6 +21,14 @@ class FlaskAppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.get_json(), {"error": "No JSON body"})
 
+    def test_webhook_get_returns_status_message(self) -> None:
+        response = self.client.get("/webhook")
+        payload = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload.get("status"), "ok")
+        self.assertIn("POST", payload.get("message", ""))
+
     def test_webhook_accepts_dialogs_payload(self) -> None:
         payload = {
             "request": {"original_utterance": "старт"},

@@ -17,9 +17,17 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-@app.route("/webhook", methods=["POST"])
+@app.route("/webhook", methods=["GET", "POST"])
 def webhook() -> tuple[Any, int]:
     """Handle Yandex Dialogs webhook requests."""
+    if request.method == "GET":
+        return jsonify(
+            {
+                "status": "ok",
+                "message": "Webhook is online. Send POST requests from Yandex Dialogs.",
+            }
+        ), 200
+
     try:
         data = request.get_json(silent=True)
         if not data:
