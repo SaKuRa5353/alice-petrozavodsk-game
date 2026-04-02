@@ -32,6 +32,8 @@ def webhook() -> tuple[Any, int]:
         data = request.get_json(silent=True)
         if not data:
             return jsonify({"error": "No JSON body"}), 400
+        if not isinstance(data, dict):
+            return jsonify({"error": "Invalid JSON payload: expected object"}), 400
 
         response = handler(data, None)
         return jsonify(response), 200

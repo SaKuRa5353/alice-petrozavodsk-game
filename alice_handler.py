@@ -14,6 +14,11 @@ from game_engine import GameState, handle_user_input
 SESSIONS: Dict[str, GameState] = {}
 
 
+def _as_dict(value: Any) -> Dict[str, Any]:
+    """Return dict value or safe empty dict for malformed payloads."""
+    return value if isinstance(value, dict) else {}
+
+
 def _build_response(text: str, end_session: bool = False) -> Dict[str, Any]:
     return {
         "version": "1.0",
@@ -25,13 +30,16 @@ def _build_response(text: str, end_session: bool = False) -> Dict[str, Any]:
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    request = event.get("request", {})
-    session = event.get("session", {})
+    event_payload = _as_dict(event)
+    request = _as_dict(event_payload.get("request"))
+    session = _as_dict(event_payload.get("session"))
+    application = _as_dict(session.get("application"))
 
     # Keep a stable key even when user_id is absent in some test/debug payloads.
-    user_id = session.get("user_id") or session.get("application", {}).get("application_id", "anonymous")
+    user_id = str(session.get("user_id") or application.get("application_id") or "anonymous")
     is_new = bool(session.get("new"))
-    user_text = request.get("original_utterance", "").strip()
+    raw_text = request.get("original_utterance") or request.get("command") or ""
+    user_text = str(raw_text).strip()
 
     if is_new or user_id not in SESSIONS:
         SESSIONS[user_id] = GameState()

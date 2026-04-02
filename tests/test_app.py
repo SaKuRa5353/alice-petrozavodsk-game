@@ -21,6 +21,15 @@ class FlaskAppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.get_json(), {"error": "No JSON body"})
 
+    def test_webhook_rejects_non_object_json(self) -> None:
+        response = self.client.post("/webhook", json=["not", "an", "object"])
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.get_json(),
+            {"error": "Invalid JSON payload: expected object"},
+        )
+
     def test_webhook_get_returns_status_message(self) -> None:
         response = self.client.get("/webhook")
         payload = response.get_json()

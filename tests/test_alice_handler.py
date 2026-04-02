@@ -59,6 +59,29 @@ class TestAliceHandler(unittest.TestCase):
 
         self.assertIn("app-123", SESSIONS)
 
+    def test_handler_tolerates_null_request_and_session(self) -> None:
+        event = {
+            "request": None,
+            "session": None,
+        }
+
+        response = handler(event, context=None)
+
+        self.assertEqual(response["version"], "1.0")
+        self.assertIn("response", response)
+        self.assertIn("text", response["response"])
+
+    def test_handler_uses_request_command_when_original_utterance_missing(self) -> None:
+        event = {
+            "request": {"command": "старт"},
+            "session": {"new": True, "user_id": "u3"},
+        }
+
+        response = handler(event, context=None)
+
+        self.assertIn("u3", SESSIONS)
+        self.assertIn("Вопрос 1/5", response["response"]["text"])
+
 
 if __name__ == "__main__":
     unittest.main()

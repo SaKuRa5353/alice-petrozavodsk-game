@@ -55,6 +55,18 @@ curl -X POST https://твой-url.onrender.com/webhook \
 python verify_webhook.py https://твой-url.onrender.com
 ```
 
+Проверь открытие webhook в браузере (GET):
+
+```bash
+curl https://твой-url.onrender.com/webhook
+```
+
+Ожидаемый ответ:
+
+```json
+{"status":"ok","message":"Webhook is online. Send POST requests from Yandex Dialogs."}
+```
+
 ### 4. Привязка webhook в Яндекс Диалогах
 
 1. Открой https://dialogs.yandex.ru.
@@ -68,7 +80,11 @@ python verify_webhook.py https://твой-url.onrender.com
 - Навык запускается в приложении Алисы.
 - Команды `старт`, `помощь`, `сдаюсь`, `заново` работают.
 - Публичный `/health` отвечает со статусом ok.
+- Публичный `GET /webhook` возвращает JSON со статусом ok.
 - Публичный `/webhook` принимает JSON и возвращает корректный ответ формата Алисы.
+
+Перед отправкой на модерацию отправь 1-2 тестовых запроса в `/health` и `/webhook`,
+чтобы исключить задержку первого запуска сервиса после простоя.
 
 ### 6. Что отправить преподавателю
 
