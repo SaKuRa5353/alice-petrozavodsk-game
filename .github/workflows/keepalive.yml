@@ -1,0 +1,28 @@
+name: Keep Render Warm
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping health endpoint (up to 2 attempts)
+        env:
+          HEALTH_URL: https://alice-petrozavodsk-game.onrender.com/health
+        run: |
+          set -e
+          for attempt in 1 2; do
+            echo "Attempt $attempt: $HEALTH_URL"
+            if curl -fsS --max-time 55 "$HEALTH_URL"; then
+              echo "Health check succeeded"
+              exit 0
+            fi
+            echo "Health check failed, waiting before retry"
+            sleep 15
+          done
+          echo "Service did not respond in time"
+          exit 1
