@@ -7,9 +7,14 @@ Usage:
 from __future__ import annotations
 
 import json
+import time
 import sys
 import urllib.error
 import urllib.request
+
+
+REQUEST_TIMEOUT = 60
+MAX_ATTEMPTS = 3
 
 
 def _fail(message: str) -> int:
@@ -23,12 +28,20 @@ def _ok(message: str) -> None:
 
 def check_health(base_url: str) -> int:
     health_url = f"{base_url}/health"
-    try:
-        with urllib.request.urlopen(health_url, timeout=15) as response:
-            status = response.status
-            body = response.read().decode("utf-8")
-    except (urllib.error.URLError, TimeoutError) as exc:
-        return _fail(f"Не удалось запросить {health_url}: {exc}")
+    status = None
+    body = ""
+
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            with urllib.request.urlopen(health_url, timeout=REQUEST_TIMEOUT) as response:
+                status = response.status
+                body = response.read().decode("utf-8")
+                break
+        except (urllib.error.URLError, TimeoutError) as exc:
+            if attempt == MAX_ATTEMPTS:
+                return _fail(f"Не удалось запросить {health_url}: {exc}")
+            print(f"[WARN] Попытка {attempt} не удалась: {exc}. Повторяем...")
+            time.sleep(2)
 
     if status != 200:
         return _fail(f"{health_url} вернул статус {status}, ожидался 200")
@@ -60,12 +73,20 @@ def check_webhook(base_url: str) -> int:
         method="POST",
     )
 
-    try:
-        with urllib.request.urlopen(request, timeout=15) as response:
-            status = response.status
-            response_body = response.read().decode("utf-8")
-    except (urllib.error.URLError, TimeoutError) as exc:
-        return _fail(f"Не удалось запросить {webhook_url}: {exc}")
+    status = None
+    response_body = ""
+
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT) as response:
+                status = response.status
+                response_body = response.read().decode("utf-8")
+                break
+        except (urllib.error.URLError, TimeoutError) as exc:
+            if attempt == MAX_ATTEMPTS:
+                return _fail(f"Не удалось запросить {webhook_url}: {exc}")
+            print(f"[WARN] Попытка {attempt} не удалась: {exc}. Повторяем...")
+            time.sleep(2)
 
     if status != 200:
         return _fail(f"{webhook_url} вернул статус {status}, ожидался 200")

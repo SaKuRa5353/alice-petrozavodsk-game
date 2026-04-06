@@ -91,7 +91,20 @@ curl https://твой-url.onrender.com/webhook
 На бесплатном/спящем инстансе первый запрос иногда отвечает медленнее обычного.
 Чтобы снизить риск отказа по таймауту, в репозитории добавлен workflow:
 
-- `.github/workflows/keepalive.yml` — пингует `/health` каждые 10 минут.
+- `.github/workflows/keepalive.yml` — каждые 5 минут пингует `/health`
+  и отправляет `POST /webhook` с тестовым payload.
+
+Важно: GitHub schedule не гарантирует запуск строго по минутам, поэтому
+добавь внешний бесплатный мониторинг (например, UptimeRobot):
+
+1. Создай monitor типа HTTP(s)
+2. URL: `https://твой-url.onrender.com/health`
+3. Interval: 5 minutes
+4. Timeout: 30 seconds
+5. (Опционально) второй monitor на `https://твой-url.onrender.com/webhook` (GET)
+
+Комбинация GitHub keepalive + внешний монитор заметно снижает риск таймаута
+без перехода на платный план.
 
 При необходимости можно запустить вручную в GitHub Actions:
 

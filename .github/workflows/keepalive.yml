@@ -2,27 +2,45 @@ name: Keep Render Warm
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
+
+concurrency:
+  group: keep-render-warm
+  cancel-in-progress: true
 
 jobs:
   ping:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ping health endpoint (up to 2 attempts)
+      - name: Ping health and webhook endpoints (up to 4 attempts)
         env:
           HEALTH_URL: https://alice-petrozavodsk-game.onrender.com/health
+          WEBHOOK_URL: https://alice-petrozavodsk-game.onrender.com/webhook
         run: |
           set -e
-          for attempt in 1 2; do
+          for attempt in 1 2 3 4; do
             echo "Attempt $attempt: $HEALTH_URL"
-            if curl -fsS --max-time 55 "$HEALTH_URL"; then
+            if curl -fsS --max-time 80 "$HEALTH_URL" >/dev/null; then
               echo "Health check succeeded"
+            else
+              echo "Health check failed"
+              sleep 20
+              continue
+            fi
+
+            echo "Attempt $attempt: POST $WEBHOOK_URL"
+            if curl -fsS --max-time 80 -H "Content-Type: application/json" \
+              -X POST "$WEBHOOK_URL" \
+              -d '{"request":{"original_utterance":"старт"},"session":{"new":true,"user_id":"keepalive"}}' >/dev/null; then
+              echo "Webhook warm-up succeeded"
               exit 0
             fi
-            echo "Health check failed, waiting before retry"
-            sleep 15
+
+            echo "Webhook warm-up failed, waiting before retry"
+            sleep 20
           done
+
           echo "Service did not respond in time"
           exit 1
