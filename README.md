@@ -6,37 +6,38 @@
 
 ## О проекте
 
-Проект реализует игру на 5 раундов: пользователь получает описание достопримечательности,
-вводит ответ и получает мгновенную проверку результата.
+Проект реализует игру на 5 раундов: пользователь получает описание достопримечательности, вводит ответ и получает мгновенную проверку результата.
 
 Архитектура разделена на:
-- независимый игровой движок (можно тестировать локально);
-- webhook-обработчик для интеграции с Яндекс Диалогами.
+- независимый игровой движок, который можно тестировать локально;
+- webhook-обработчик для интеграции с Яндекс Диалогами;
+- отдельный entry point для Yandex Cloud Functions.
 
 ## Структура репозитория
 
 ```text
 .
 ├── .github/workflows/ci.yml    # CI: автозапуск тестов в GitHub Actions
-├── app.py                      # Flask HTTP-сервер для webhook
-├── alice_handler.py            # Webhook для Яндекс Диалогов
+├── alice_handler.py            # Основной webhook-обработчик
+├── app.py                      # Flask HTTP-сервер для локальной проверки
+├── cloud_function.py           # Entry point для Yandex Cloud Functions
 ├── demo_cli.py                 # Локальный CLI-запуск
 ├── game_engine.py              # Игровая логика и состояние
 ├── landmarks.py                # База достопримечательностей
-├── Procfile                    # Конфигурация развёртывания (Render)
+├── Procfile                    # Локальный запуск для Flask-сервера
 ├── requirements.txt            # Зависимости
 ├── runtime.txt                 # Версия Python для облака
 ├── DEPLOYMENT.md               # Инструкция по развёртыванию
 ├── PROGRESS.md                 # Журнал прогресса
 ├── tests/                      # Набор unit-тестов
-└── wikiversity_quiz.wiki       # Полный курс для Викиверситета
+└── wikiversity_quiz.wiki       # Материал для Викиверситета
 ```
 
 ## Возможности
 
 - 5 случайных вопросов в каждой игре.
 - Проверка ответа по основному названию и алиасам.
-- Подсчет итогового результата.
+- Подсчёт итогового результата.
 - Команды управления раундом.
 
 ### Команды
@@ -52,13 +53,14 @@
 - Python 3.11+
 - Python Standard Library
 - Yandex Dialogs Webhook API
+- Yandex Cloud Functions
 
 ## Условия запуска
 
 - Python 3.11 или выше
 - Linux / macOS / Windows
 - Для локального CLI не требуются внешние сервисы
-- Для webhook-развертывания нужна облачная среда (например, Yandex Cloud Functions)
+- Для публикации навыка рекомендуется Yandex Cloud Functions
 
 ## Как запускать
 
@@ -94,64 +96,38 @@ python -m unittest discover -s tests -v
 
 Тесты покрывают:
 - игровую логику (`tests/test_game_engine.py`);
-- webhook-обработчик (`tests/test_alice_handler.py`).
-- HTTP-слой Flask (`tests/test_app.py`).
+- webhook-обработчик (`tests/test_alice_handler.py`);
+- HTTP-слой Flask (`tests/test_app.py`);
 - валидацию качества данных (`tests/test_landmarks_data.py`).
 
 ## Развёртывание webhook
 
-Для того чтобы навык работал в Яндекс.Ассистенте, нужно развернуть webhook на публичном сервере.
+### Рекомендуемый вариант: Yandex Cloud Functions
 
-### Быстрое развёртывание на Render (5 минут)
+1. Открой https://console.yandex.cloud/ и войди в аккаунт.
+2. Создай функцию в разделе Cloud Functions.
+3. Загрузите код архивом `.zip` из корня репозитория.
+4. Entry point укажи `cloud_function.handler`.
+5. Создай HTTP-trigger и получи публичный HTTPS URL.
+6. Укажи этот URL как webhook в Яндекс Диалогах.
 
-1. Перейди на https://render.com и залогинься через GitHub
-2. Нажми "New" → "Web Service"
-3. Выбери этот репозиторий
-4. Заполни:
-   - Name: `petrozavodsk-quiz`
-   - Build: `pip install -r requirements.txt`
-   - Start: `gunicorn app:app`
-5. Нажми "Deploy"
-6. Когда готово, получишь URL вида: `https://petrozavodsk-quiz.onrender.com`
-7. Webhook URL для Яндекс.Диалогов: `https://твой-url/webhook`
+### Проверка перед отправкой на модерацию
 
-**Полная инструкция:** см. [DEPLOYMENT.md](DEPLOYMENT.md)
-
-### Быстрая проверка деплоя одной командой
-
-После публикации на Render можно проверить сервис локально:
+После публикации запусти:
 
 ```bash
-python verify_webhook.py https://твой-url.onrender.com
+python verify_webhook.py https://твой-url
 ```
 
-Скрипт проверяет:
+Ожидается:
 - `GET /health` возвращает `{"status":"ok"}`;
-- `POST /webhook` принимает JSON и отдаёт корректный ответ формата Яндекс Диалогов.
+- `POST /webhook` принимает JSON и отдаёт корректный ответ формата Алисы.
 
-### Регистрация навыка в Яндекс.Диалогах
+### Подключение в Яндекс Диалогах
 
-1. https://dialogs.yandex.ru → создай новый навык
-2. Укажи webhook URL: `https://твой-url/webhook`
-3. Опубликуй и тестируй в Яндекс.Ассистент
-
-## CI
-
-В проекте настроен GitHub Actions workflow (`.github/workflows/ci.yml`),
-который автоматически запускает тесты при каждом `push` и `pull request` в `main`.
-## Пример сценария
-
-```text
-> старт
-Начинаем игру: Угадай достопримечательность Петрозаводска!
-Вопрос 1/5.
-Описание: ...
-Подсказка: ...
-Что это за достопримечательность?
-
-> набережная
-Верно! Отличный ответ.
-```
+1. Создай навык в https://dialogs.yandex.ru.
+2. В поле webhook URL укажи URL функции.
+3. Проверь команды `старт`, `помощь`, `сдаюсь`, `заново`.
 
 ## Интеграция с Яндекс Диалогами
 
@@ -161,13 +137,13 @@ python verify_webhook.py https://твой-url.onrender.com
 
 ```json
 {
-	"request": {
-		"original_utterance": "старт"
-	},
-	"session": {
-		"new": true,
-		"user_id": "user-123"
-	}
+  "request": {
+    "original_utterance": "старт"
+  },
+  "session": {
+    "new": true,
+    "user_id": "user-123"
+  }
 }
 ```
 
@@ -175,7 +151,7 @@ python verify_webhook.py https://твой-url.onrender.com
 
 1. Создайте навык в Яндекс Диалогах.
 2. Укажите формат с webhook URL.
-3. Разверните `alice_handler.py` в облачной функции.
+3. Разверните `cloud_function.py` или `alice_handler.py` в облачной функции.
 4. Добавьте URL функции в настройках навыка.
 5. Проверьте команды `помощь`, `сдаюсь`, `заново`.
 
@@ -192,4 +168,4 @@ python verify_webhook.py https://твой-url.onrender.com
 
 ## Лицензия
 
-Проект распространяется по лицензии MIT. Подробности: `LICENSE`.
+Проект распространяется по лицензии MIT. Подробности: `LICENSE`

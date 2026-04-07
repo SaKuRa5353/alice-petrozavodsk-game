@@ -1,0 +1,41 @@
+== Навыки Алисы/Установка и локальный запуск ==
+
+'''Подстраница курса «Навыки Алисы».'''
+
+Эта подстраница описывает локальную установку проекта и запуск на компьютере.
+
+== Требования ==
+
+* Python 3.11+
+* Git
+* Интернет нужен только для развёртывания и проверки публичного webhook
+
+== Локальный запуск ==
+
+1. Создай виртуальное окружение:
+<syntaxhighlight lang="bash">
+python -m venv .venv
+source .venv/bin/activate
+</syntaxhighlight>
+
+2. Установи зависимости:
+<syntaxhighlight lang="bash">
+pip install -r requirements.txt
+</syntaxhighlight>
+
+3. Запусти тесты:
+<syntaxhighlight lang="bash">
+python -m unittest discover -s tests -v
+</syntaxhighlight>
+
+4. Попробуй игру в CLI:
+<syntaxhighlight lang="bash">
+python demo_cli.py
+</syntaxhighlight>
+
+== Команды ==
+
+* <code>старт</code> — начать игру
+* <code>помощь</code> — показать правила
+* <code>сдаюсь</code> — показать правильный ответ
+* <code>заново</code> — начать заново

@@ -1,0 +1,35 @@
+== Навыки Алисы/Yandex Cloud Functions ==
+
+'''Подстраница курса «Навыки Алисы».'''
+
+Эта подстраница описывает развёртывание webhook в Yandex Cloud Functions.
+
+== Почему Cloud Functions ==
+
+* нет спящего сервера;
+* нет зависимости от платного always-on плана;
+* хорошо подходит для webhook навыков Алисы;
+* точка входа уже реализована в `alice_handler.py`.
+
+== Точка входа ==
+
+Для функции используется:
+<syntaxhighlight lang="python">
+from alice_handler import handler
+</syntaxhighlight>
+
+== Шаги развёртывания ==
+
+1. Открой Yandex Cloud Console.
+2. Создай функцию в разделе Cloud Functions.
+3. Загрузите код архивом `.zip` из корня репозитория.
+4. Укажи entry point `cloud_function.handler`.
+5. Создай HTTP-trigger.
+6. Возьми публичный URL и используй его как webhook в Яндекс Диалогах.
+
+== Проверка ==
+
+После публикации проверь:
+<syntaxhighlight lang="bash">
+python verify_webhook.py https://твой-url
+</syntaxhighlight>

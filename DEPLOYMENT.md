@@ -1,4 +1,4 @@
-## Развёртывание навыка Петрозаводск Quiz на Render
+## Развёртывание навыка Петрозаводск Quiz на Yandex Cloud Functions
 
 ### 1. Подготовка перед публикацией
 
@@ -10,26 +10,24 @@ python -m unittest discover -s tests -v
 
 Если тесты зелёные, отправь актуальный код в GitHub.
 
-### 2. Публикация Web Service в Render
+### 2. Публикация функции в Yandex Cloud
 
-1. Открой https://render.com и войди через GitHub.
-2. Нажми New -> Web Service.
-3. Выбери репозиторий alice-petrozavodsk-game.
-4. Укажи параметры:
-   - Runtime: Python 3
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn app:app`
-5. Нажми Deploy.
+1. Открой https://console.yandex.cloud/ и войди в аккаунт.
+2. Перейди в раздел Cloud Functions.
+3. Создай новую функцию.
+4. Выбери Python runtime.
+5. Загрузи код архивом `.zip` из корня репозитория.
+6. Entry point укажи `cloud_function.handler`.
+7. Создай HTTP-trigger и получи публичный HTTPS URL.
 
-Через 2-3 минуты сервис получит адрес вида:
-`https://petrozavodsk-quiz.onrender.com`
+После публикации у функции появится публичный URL.
 
 ### 3. Проверка публичного сервиса
 
-Проверь health endpoint:
+Проверь health endpoint по URL функции:
 
 ```bash
-curl https://твой-url.onrender.com/health
+curl https://твой-url/health
 ```
 
 Ожидаемый ответ:
@@ -41,7 +39,7 @@ curl https://твой-url.onrender.com/health
 Проверь webhook локальным тестовым запросом:
 
 ```bash
-curl -X POST https://твой-url.onrender.com/webhook \
+curl -X POST https://твой-url/webhook \
   -H "Content-Type: application/json" \
   -d '{
     "request": {"original_utterance": "старт"},
@@ -52,13 +50,13 @@ curl -X POST https://твой-url.onrender.com/webhook \
 Также можно проверить оба endpoint сразу:
 
 ```bash
-python verify_webhook.py https://твой-url.onrender.com
+python verify_webhook.py https://твой-url
 ```
 
 Проверь открытие webhook в браузере (GET):
 
 ```bash
-curl https://твой-url.onrender.com/webhook
+curl https://твой-url/webhook
 ```
 
 Ожидаемый ответ:
@@ -71,8 +69,7 @@ curl https://твой-url.onrender.com/webhook
 
 1. Открой https://dialogs.yandex.ru.
 2. Создай навык с внешним webhook.
-3. В поле URL обработчика укажи:
-   `https://твой-url.onrender.com/webhook`
+3. В поле URL обработчика укажи URL функции.
 4. Сохрани и протестируй навык в интерфейсе Диалогов и в приложении Алисы.
 
 ### 5. Чеклист готовности к сдаче
@@ -83,34 +80,18 @@ curl https://твой-url.onrender.com/webhook
 - Публичный `GET /webhook` возвращает JSON со статусом ok.
 - Публичный `/webhook` принимает JSON и возвращает корректный ответ формата Алисы.
 
-Перед отправкой на модерацию отправь 1-2 тестовых запроса в `/health` и `/webhook`,
-чтобы исключить задержку первого запуска сервиса после простоя.
+Перед отправкой на модерацию отправь 1-2 тестовых запроса в `/health` и `/webhook`, чтобы убедиться, что всё отвечает быстро.
 
-### 6. Анти-таймаут для модерации (Render)
+### 6. Бесплатная страховка от таймаута
 
-На бесплатном/спящем инстансе первый запрос иногда отвечает медленнее обычного.
-Чтобы снизить риск отказа по таймауту, в репозитории добавлен workflow:
+Если хочешь дополнительную подстраховку, можно оставить внешний бесплатный монитор на `/health`:
 
-- `.github/workflows/keepalive.yml` — каждые 5 минут пингует `/health`
-  и отправляет `POST /webhook` с тестовым payload.
+1. Создай monitor типа HTTP(s).
+2. URL: `https://твой-url/health`.
+3. Interval: 5 minutes.
+4. Timeout: 30 seconds.
 
-Важно: GitHub schedule не гарантирует запуск строго по минутам, поэтому
-добавь внешний бесплатный мониторинг (например, UptimeRobot):
-
-1. Создай monitor типа HTTP(s)
-2. URL: `https://твой-url.onrender.com/health`
-3. Interval: 5 minutes
-4. Timeout: 30 seconds
-5. (Опционально) второй monitor на `https://твой-url.onrender.com/webhook` (GET)
-
-Комбинация GitHub keepalive + внешний монитор заметно снижает риск таймаута
-без перехода на платный план.
-
-При необходимости можно запустить вручную в GitHub Actions:
-
-1. Открой Actions -> `Keep Render Warm`
-2. Нажми `Run workflow`
-3. После успешного запуска отправляй навык на модерацию
+Для Cloud Functions это обычно не обязательно, но полезно как дополнительная проверка.
 
 ### 7. Что отправить преподавателю
 

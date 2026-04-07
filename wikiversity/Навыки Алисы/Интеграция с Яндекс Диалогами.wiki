@@ -1,0 +1,45 @@
+== Навыки Алисы/Интеграция с Яндекс Диалогами ==
+
+'''Подстраница курса «Навыки Алисы».'''
+
+Эта подстраница показывает, как устроен webhook-пayload и какой ответ ожидает Алиса.
+
+== Минимальный payload ==
+
+<syntaxhighlight lang="json">
+{
+  "request": {
+    "original_utterance": "старт"
+  },
+  "session": {
+    "new": true,
+    "user_id": "user-123"
+  }
+}
+</syntaxhighlight>
+
+== Что делает обработчик ==
+
+* читает `request` и `session`;
+* определяет пользователя;
+* запускает игру или продолжает текущую;
+* возвращает JSON формата Яндекс Диалогов.
+
+== Формат ответа ==
+
+<syntaxhighlight lang="json">
+{
+  "version": "1.0",
+  "response": {
+    "text": "Ответ навыка",
+    "end_session": false
+  }
+}
+</syntaxhighlight>
+
+== Проверка ==
+
+Проверяй webhook через:
+<syntaxhighlight lang="bash">
+python verify_webhook.py https://твой-url
+</syntaxhighlight>
