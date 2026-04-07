@@ -82,6 +82,17 @@ class TestAliceHandler(unittest.TestCase):
         self.assertIn("u3", SESSIONS)
         self.assertIn("Вопрос 1/5", response["response"]["text"])
 
+    def test_handler_answers_what_can_you_do_with_instructions(self) -> None:
+        event = {
+            "request": {"original_utterance": "Что ты умеешь"},
+            "session": {"new": True, "user_id": "u4"},
+        }
+
+        response = handler(event, context=None)
+
+        self.assertIn("u4", SESSIONS)
+        self.assertIn("Правила игры", response["response"]["text"])
+
 
 if __name__ == "__main__":
     unittest.main()

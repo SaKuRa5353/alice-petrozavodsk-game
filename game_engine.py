@@ -98,7 +98,7 @@ def _next_question_or_finish(state: GameState) -> str:
 def handle_user_input(raw_text: str, state: GameState) -> Tuple[str, GameState]:
     text = normalize_text(raw_text)
 
-    if text in {"помощь", "help"}:
+    if text in {"помощь", "help", "что ты умеешь", "что умеешь"}:
         if not state.in_progress:
             start_text, state = _start_new_game(state)
             return help_text() + "\\n\\n" + start_text, state

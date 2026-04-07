@@ -38,6 +38,15 @@ class TestGameEngine(unittest.TestCase):
         self.assertIn("Правила игры", text)
         self.assertIn("Вопрос 1/5", text)
 
+    def test_what_can_you_do_before_start_also_shows_help(self) -> None:
+        state = GameState()
+        with patch("game_engine.random.sample", return_value=self.fixed_landmarks.copy()):
+            text, state = handle_user_input("что ты умеешь", state)
+
+        self.assertTrue(state.in_progress)
+        self.assertIn("Правила игры", text)
+        self.assertIn("Вопрос 1/5", text)
+
     def test_correct_answer_increases_score_and_moves_to_next_question(self) -> None:
         _, state = self._start_game()
         current_name = state.current_landmark["name"]
