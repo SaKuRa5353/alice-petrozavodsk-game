@@ -11,6 +11,7 @@ LANDMARKS = [
         "location": "Набережный проспект, берег Онежского озера",
         "year": "Современный облик формировался с 1990-х",
         "image_hint_url": "https://commons.wikimedia.org/wiki/Category:Onega_Embankment_(Petrozavodsk)",
+        "image_id": "1521359/0685c119fb33d1fde909",
         "sources": [
             "https://ru.wikipedia.org/wiki/Петрозаводск",
             "https://karelia.travel/"
@@ -24,6 +25,7 @@ LANDMARKS = [
         "location": "Петровский сквер, рядом с Онежской набережной",
         "year": "1873",
         "image_hint_url": "https://ru.wikipedia.org/wiki/Памятник_Петру_I_(Петрозаводск)",
+        "image_id": "1533899/b3f57afe674a2212417a",
         "sources": [
             "https://ru.wikipedia.org/wiki/Памятник_Петру_I_(Петрозаводск)",
             "https://karelia.travel/"
@@ -37,6 +39,7 @@ LANDMARKS = [
         "location": "Онежская набережная",
         "year": "1991",
         "image_hint_url": "https://ru.wikipedia.org/wiki/Рыбаки_(скульптура)",
+        "image_id": "1652229/bc28a1402df2200ed1c3",
         "sources": [
             "https://ru.wikipedia.org/wiki/Рыбаки_(скульптура)",
             "https://ru.wikipedia.org/wiki/Петрозаводск"
@@ -50,6 +53,7 @@ LANDMARKS = [
         "location": "Площадь Гагарина",
         "year": "1955",
         "image_hint_url": "https://commons.wikimedia.org/wiki/File:Petrozavodsk_railway_station_and_Gagarin_Square_summer_2023.jpg",
+        "image_id": "1656841/30604d9f6ddab0efdc3c",
         "sources": [
             "https://ru.wikipedia.org/wiki/Петрозаводск-Пассажирский",
             "https://commons.wikimedia.org/wiki/File:Petrozavodsk_railway_station_and_Gagarin_Square_summer_2023.jpg"
@@ -63,6 +67,7 @@ LANDMARKS = [
         "location": "Площадь Ленина",
         "year": "1871 (основание музея)",
         "image_hint_url": "https://ru.wikipedia.org/wiki/Национальный_музей_Республики_Карелия",
+        "image_id": "1656841/cb7ee3c46fc6b5a45e0d",
         "sources": [
             "https://ru.wikipedia.org/wiki/Национальный_музей_Республики_Карелия",
             "https://museum.ru/"
@@ -76,6 +81,7 @@ LANDMARKS = [
         "location": "Площадь Кирова",
         "year": "1955",
         "image_hint_url": "https://ru.wikipedia.org/wiki/Музыкальный_театр_Республики_Карелия",
+        "image_id": "1540737/322df063aebf66c4a202",
         "sources": [
             "https://ru.wikipedia.org/wiki/Музыкальный_театр_Республики_Карелия",
             "https://karelia.ru/"
@@ -89,6 +95,7 @@ LANDMARKS = [
         "location": "Проспект Александра Невского",
         "year": "1832",
         "image_hint_url": "https://ru.wikipedia.org/wiki/Собор_Александра_Невского_(Петрозаводск)",
+        "image_id": "1656841/a379b0e8bdc2a6cb2c91",
         "sources": [
             "https://ru.wikipedia.org/wiki/Собор_Александра_Невского_(Петрозаводск)",
             "https://karelia-eparhia.ru/"
@@ -102,6 +109,7 @@ LANDMARKS = [
         "location": "Район площади Ленина",
         "year": "XIX век",
         "image_hint_url": "https://ru.wikipedia.org/wiki/Петрозаводск",
+        "image_id": "1540737/d0752565cdc4e0deac89",
         "sources": [
             "https://ru.wikipedia.org/wiki/Петрозаводск",
             "https://karelia.travel/"
@@ -115,6 +123,7 @@ LANDMARKS = [
         "location": "Центр Петрозаводска",
         "year": "конец XVIII века",
         "image_hint_url": "https://ru.wikipedia.org/wiki/Площадь_Ленина_(Петрозаводск)",
+        "image_id": "1656841/225b7bf0f573dcea77dd",
         "sources": [
             "https://ru.wikipedia.org/wiki/Площадь_Ленина_(Петрозаводск)",
             "https://ru.wikipedia.org/wiki/Петрозаводск"
@@ -128,6 +137,7 @@ LANDMARKS = [
         "location": "Центральная часть города",
         "year": "XX век",
         "image_hint_url": "https://ru.wikipedia.org/wiki/Петрозаводск",
+        "image_id": "13200873/af2d7ef4a814a68acef6",
         "sources": [
             "https://ru.wikipedia.org/wiki/Петрозаводск",
             "https://karelia.travel/"
