@@ -53,7 +53,7 @@ def _build_second_hint_card(state: GameState, text: str) -> Dict[str, Any] | Non
     return {
         "type": "BigImage",
         "image_id": image_id.strip(),
-        "title": f"Подсказка: {current.get('name', 'достопримечательность')}",
+        "title": "Вторая подсказка",
         "description": "Посмотри на изображение и попробуй ответить еще раз.",
     }
 
