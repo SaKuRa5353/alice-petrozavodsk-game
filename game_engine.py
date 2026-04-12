@@ -10,6 +10,7 @@ from typing import Dict, List, Tuple
 from landmarks import LANDMARKS
 
 TOTAL_QUESTIONS = 5
+MAX_WRONG_ATTEMPTS = 3
 
 
 @dataclass
@@ -185,7 +186,7 @@ def handle_user_input(raw_text: str, state: GameState) -> Tuple[str, GameState]:
             state,
         )
 
-    if text == "сдаюсь":
+    if text == "сдаюсь" or text.startswith("сдаюс"):
         current = state.current_landmark
         state.asked_count += 1
         state.wrong_attempts_on_current = 0
@@ -207,7 +208,7 @@ def handle_user_input(raw_text: str, state: GameState) -> Tuple[str, GameState]:
         return (
             "Пока не угадал. Первая подсказка:\\n"
             f"{current['hint']}\\n"
-            "Попробуй еще раз или напиши 'сдаюсь'."
+            "Осталось 2 попытки. Попробуй еще раз или напиши 'сдаюсь'."
         ), state
 
     if state.wrong_attempts_on_current == 2:
@@ -216,7 +217,18 @@ def handle_user_input(raw_text: str, state: GameState) -> Tuple[str, GameState]:
             return (
                 "Пока не угадал. Вторая подсказка (картинка):\\n"
                 f"{image_hint}\\n"
-                "Попробуй еще раз или напиши 'сдаюсь'."
+                "Осталась 1 попытка. Попробуй еще раз или напиши 'сдаюсь'."
             ), state
+
+    if state.wrong_attempts_on_current >= MAX_WRONG_ATTEMPTS:
+        current = state.current_landmark
+        state.asked_count += 1
+        state.wrong_attempts_on_current = 0
+        answer_text = (
+            "Попытки закончились.\\n"
+            f"Правильный ответ: {current['name']}.\\n"
+            f"Локация: {current['location']}. Год: {current['year']}."
+        )
+        return answer_text + "\\n\\n" + _next_question_or_finish(state), state
 
     return ("Пока не угадал. Попробуй еще раз или напиши 'сдаюсь'."), state

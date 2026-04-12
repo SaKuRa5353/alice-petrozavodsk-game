@@ -56,6 +56,7 @@ class TestGameEngine(unittest.TestCase):
 
         self.assertEqual(state.wrong_attempts_on_current, 1)
         self.assertIn("Первая подсказка", text)
+        self.assertIn("Осталось 2 попытки", text)
         self.assertIn("Попробуй еще раз", text)
 
     def test_second_wrong_answer_shows_image_hint(self) -> None:
@@ -66,7 +67,21 @@ class TestGameEngine(unittest.TestCase):
 
         self.assertEqual(state.wrong_attempts_on_current, 2)
         self.assertIn("Вторая подсказка (картинка)", text)
+        self.assertIn("Осталась 1 попытка", text)
         self.assertIn("http", text)
+
+    def test_third_wrong_answer_reveals_and_moves_next(self) -> None:
+        _, state = self._start_game()
+
+        handle_user_input("не знаю", state)
+        handle_user_input("совсем не знаю", state)
+        text, state = handle_user_input("еще ошибка", state)
+
+        self.assertEqual(state.asked_count, 1)
+        self.assertEqual(state.wrong_attempts_on_current, 0)
+        self.assertIn("Попытки закончились", text)
+        self.assertIn("Правильный ответ", text)
+        self.assertIn("Вопрос 2/5", text)
 
     def test_correct_answer_increases_score_and_moves_to_next_question(self) -> None:
         _, state = self._start_game()
@@ -88,6 +103,14 @@ class TestGameEngine(unittest.TestCase):
         self.assertEqual(state.asked_count, 1)
         self.assertIn("Правильный ответ", text)
         self.assertIn("Вопрос 2/5", text)
+
+    def test_typo_surrender_command_is_accepted(self) -> None:
+        _, state = self._start_game()
+
+        text, state = handle_user_input("сдаюсб", state)
+
+        self.assertEqual(state.asked_count, 1)
+        self.assertIn("Правильный ответ", text)
 
     def test_game_finishes_after_five_correct_answers(self) -> None:
         _, state = self._start_game()
