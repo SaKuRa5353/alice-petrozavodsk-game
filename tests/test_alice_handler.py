@@ -93,6 +93,22 @@ class TestAliceHandler(unittest.TestCase):
         self.assertIn("u4", SESSIONS)
         self.assertIn("Правила игры", response["response"]["text"])
 
+    def test_handler_restores_state_from_session_state_payload(self) -> None:
+        first = {
+            "request": {"original_utterance": "старт"},
+            "session": {"new": True, "user_id": "u5"},
+        }
+        first_response = handler(first, context=None)
+
+        second = {
+            "request": {"original_utterance": "сдаюсь"},
+            "session": {"new": False, "user_id": "u5"},
+            "state": {"session": first_response.get("session_state", {})},
+        }
+        second_response = handler(second, context=None)
+
+        self.assertIn("Правильный ответ", second_response["response"]["text"])
+
 
 if __name__ == "__main__":
     unittest.main()

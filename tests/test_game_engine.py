@@ -27,7 +27,9 @@ class TestGameEngine(unittest.TestCase):
         self.assertEqual(state.score, 0)
         self.assertEqual(state.asked_count, 0)
         self.assertIsNotNone(state.current_landmark)
+        self.assertIn("Я описываю место", text)
         self.assertIn("Вопрос 1/5", text)
+        self.assertNotIn("Подсказка:", text)
 
     def test_help_before_start_also_starts_game(self) -> None:
         state = GameState()
@@ -46,6 +48,25 @@ class TestGameEngine(unittest.TestCase):
         self.assertTrue(state.in_progress)
         self.assertIn("Правила игры", text)
         self.assertIn("Вопрос 1/5", text)
+
+    def test_hint_shown_only_after_first_wrong_answer(self) -> None:
+        _, state = self._start_game()
+
+        text, state = handle_user_input("не знаю", state)
+
+        self.assertEqual(state.wrong_attempts_on_current, 1)
+        self.assertIn("Первая подсказка", text)
+        self.assertIn("Попробуй еще раз", text)
+
+    def test_second_wrong_answer_shows_image_hint(self) -> None:
+        _, state = self._start_game()
+
+        handle_user_input("не знаю", state)
+        text, state = handle_user_input("совсем не знаю", state)
+
+        self.assertEqual(state.wrong_attempts_on_current, 2)
+        self.assertIn("Вторая подсказка (картинка)", text)
+        self.assertIn("http", text)
 
     def test_correct_answer_increases_score_and_moves_to_next_question(self) -> None:
         _, state = self._start_game()
@@ -76,10 +97,54 @@ class TestGameEngine(unittest.TestCase):
             last_text, state = handle_user_input(landmark["name"], state)
 
         self.assertFalse(state.in_progress)
+        self.assertTrue(state.awaiting_restart_decision)
         self.assertIsNone(state.current_landmark)
         self.assertEqual(state.score, 5)
         self.assertIn("Игра окончена", last_text)
         self.assertIn("5/5", last_text)
+
+    def test_after_finish_non_restart_text_does_not_start_new_game(self) -> None:
+        _, state = self._start_game()
+
+        for landmark in self.fixed_landmarks:
+            _, state = handle_user_input(landmark["name"], state)
+
+        text, state = handle_user_input("краеведческий", state)
+
+        self.assertFalse(state.in_progress)
+        self.assertIn("Игра сейчас не запущена", text)
+
+    def test_after_finish_no_command_exits_waiting_state(self) -> None:
+        _, state = self._start_game()
+
+        for landmark in self.fixed_landmarks:
+            _, state = handle_user_input(landmark["name"], state)
+
+        text, state = handle_user_input("нет", state)
+
+        self.assertFalse(state.awaiting_restart_decision)
+        self.assertIn("Спасибо за игру", text)
+
+    def test_partial_lemma_match_counts_as_correct(self) -> None:
+        state = GameState(
+            in_progress=True,
+            score=0,
+            asked_count=0,
+            current_landmark={
+                "name": "Музыкальный театр Республики Карелия",
+                "aliases": ["музыкальный театр", "театр карелии"],
+                "description": "",
+                "hint": "",
+                "location": "",
+                "year": "",
+            },
+            queue=self.fixed_landmarks[1:5],
+        )
+
+        text, state = handle_user_input("музыкального", state)
+
+        self.assertEqual(state.score, 1)
+        self.assertIn("Верно!", text)
 
 
 if __name__ == "__main__":
