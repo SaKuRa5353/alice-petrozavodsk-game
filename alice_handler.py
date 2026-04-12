@@ -20,13 +20,41 @@ def _as_dict(value: Any) -> Dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def _build_response(text: str, end_session: bool = False) -> Dict[str, Any]:
-    return {
+def _build_response(
+    text: str,
+    end_session: bool = False,
+    card: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
+    response: Dict[str, Any] = {
         "version": "1.0",
         "response": {
             "text": text,
             "end_session": end_session,
         },
+    }
+    if card:
+        response["response"]["card"] = card
+    return response
+
+
+def _build_second_hint_card(state: GameState, text: str) -> Dict[str, Any] | None:
+    current = state.current_landmark if isinstance(state.current_landmark, dict) else None
+    if not current:
+        return None
+    if state.wrong_attempts_on_current != 2:
+        return None
+    if not text.startswith("Пока не угадал. Вторая подсказка"):
+        return None
+
+    image_id = current.get("image_id")
+    if not isinstance(image_id, str) or not image_id.strip():
+        return None
+
+    return {
+        "type": "BigImage",
+        "image_id": image_id.strip(),
+        "title": f"Подсказка: {current.get('name', 'достопримечательность')}",
+        "description": "Посмотри на изображение и попробуй ответить еще раз.",
     }
 
 
@@ -78,6 +106,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     reply_text, updated_state = handle_user_input(user_text, state)
     SESSIONS[user_id] = updated_state
-    response = _build_response(reply_text, end_session=False)
+    card = _build_second_hint_card(updated_state, reply_text)
+    response = _build_response(reply_text, end_session=False, card=card)
     response["session_state"] = asdict(updated_state)
     return response

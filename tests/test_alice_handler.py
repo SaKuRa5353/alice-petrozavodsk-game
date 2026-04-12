@@ -109,6 +109,39 @@ class TestAliceHandler(unittest.TestCase):
 
         self.assertIn("Правильный ответ", second_response["response"]["text"])
 
+    def test_handler_returns_big_image_card_on_second_hint_when_image_id_exists(self) -> None:
+        event = {
+            "request": {"original_utterance": "абракадабра"},
+            "session": {"new": False, "user_id": "u6"},
+            "state": {
+                "session": {
+                    "in_progress": True,
+                    "score": 0,
+                    "asked_count": 0,
+                    "wrong_attempts_on_current": 1,
+                    "awaiting_restart_decision": False,
+                    "current_landmark": {
+                        "name": "Тестовая достопримечательность",
+                        "aliases": ["тест"],
+                        "description": "desc",
+                        "hint": "hint",
+                        "location": "loc",
+                        "year": "2020",
+                        "image_hint_url": "https://example.com/pic",
+                        "image_id": "123/abc",
+                    },
+                    "queue": [],
+                }
+            },
+        }
+
+        response = handler(event, context=None)
+        card = response["response"].get("card")
+
+        self.assertIsNotNone(card)
+        self.assertEqual(card.get("type"), "BigImage")
+        self.assertEqual(card.get("image_id"), "123/abc")
+
 
 if __name__ == "__main__":
     unittest.main()
