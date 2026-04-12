@@ -125,6 +125,19 @@ class TestGameEngine(unittest.TestCase):
         self.assertFalse(state.awaiting_restart_decision)
         self.assertIn("Спасибо за игру", text)
 
+    def test_after_finish_typo_zanavo_starts_new_game(self) -> None:
+        _, state = self._start_game()
+
+        for landmark in self.fixed_landmarks:
+            _, state = handle_user_input(landmark["name"], state)
+
+        with patch("game_engine.random.sample", return_value=self.fixed_landmarks.copy()):
+            text, state = handle_user_input("занаво", state)
+
+        self.assertTrue(state.in_progress)
+        self.assertFalse(state.awaiting_restart_decision)
+        self.assertIn("Вопрос 1/5", text)
+
     def test_partial_lemma_match_counts_as_correct(self) -> None:
         state = GameState(
             in_progress=True,

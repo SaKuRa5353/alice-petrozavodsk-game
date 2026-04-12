@@ -176,7 +176,7 @@ def handle_user_input(raw_text: str, state: GameState) -> Tuple[str, GameState]:
             return help_text() + "\\n\\n" + start_text, state
         return help_text(), state
 
-    if text in {"заново", "начать заново", "start", "старт"}:
+    if text in {"заново", "занаво", "начать заново", "start", "старт"}:
         return _start_new_game(state)
 
     if not state.in_progress:
