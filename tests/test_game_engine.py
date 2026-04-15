@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from game_engine import GameState, handle_user_input, normalize_text
+from game_engine import GameState, _is_correct_answer, handle_user_input, normalize_text
 from landmarks import LANDMARKS
 
 
@@ -181,6 +181,37 @@ class TestGameEngine(unittest.TestCase):
 
         self.assertEqual(state.score, 1)
         self.assertIn("Верно!", text)
+
+    def test_monument_answer_is_not_accepted_for_lenin_square(self) -> None:
+        state = GameState(
+            in_progress=True,
+            score=0,
+            asked_count=0,
+            current_landmark={
+                "name": "Круглая площадь (площадь Ленина)",
+                "aliases": ["круглая площадь", "площадь ленина"],
+                "description": "",
+                "hint": "Старая центральная площадь города.",
+                "location": "",
+                "year": "",
+            },
+            queue=self.fixed_landmarks[1:5],
+        )
+
+        text, state = handle_user_input("памятник ленину", state)
+
+        self.assertEqual(state.score, 0)
+        self.assertEqual(state.asked_count, 0)
+        self.assertEqual(state.wrong_attempts_on_current, 1)
+        self.assertIn("Первая подсказка", text)
+
+    def test_landmark_name_is_not_accepted_for_other_landmark(self) -> None:
+        for target in LANDMARKS:
+            for other in LANDMARKS:
+                if target["name"] == other["name"]:
+                    continue
+                with self.subTest(target=target["name"], other=other["name"]):
+                    self.assertFalse(_is_correct_answer(other["name"], target))
 
 
 if __name__ == "__main__":

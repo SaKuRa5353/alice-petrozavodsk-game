@@ -2,34 +2,50 @@
 
 '''Подстраница курса «Навыки Алисы».'''
 
-Эта подстраница описывает развёртывание webhook в Yandex Cloud Functions.
+Эта подстраница описывает развёртывание webhook навыка в Yandex Cloud Functions.
+Webhook в данном проекте — это публичный HTTP-адрес, на который платформа Яндекс.Диалоги отправляет запросы пользователя и получает текст ответа навыка.
+
+Полезные ссылки:
+* Yandex Cloud Functions: [https://console.cloud.yandex.ru/functions/ консоль функций].
+* Документация Yandex Cloud Functions: [https://yandex.cloud/ru/docs/functions/ что это такое и как использовать].
 
 == Почему Cloud Functions ==
 
-* нет спящего сервера;
-* нет зависимости от платного always-on плана;
-* хорошо подходит для webhook навыков Алисы;
-* точка входа уже реализована в `alice_handler.py`.
+По сравнению с альтернативами (VPS с постоянно работающим приложением, PaaS-хостинг с риском «засыпания» бесплатных тарифов) Yandex Cloud Functions для учебного навыка удобен тем, что:
+
+* нет необходимости поддерживать постоянно запущенный сервер;
+* нет проблем со «sleep»-режимом бесплатного веб-хостинга;
+* модель оплаты и эксплуатации подходит для нерегулярной учебной нагрузки;
+* новую версию можно быстро опубликовать из zip-архива.
 
 == Точка входа ==
 
 Для функции используется:
 <syntaxhighlight lang="python">
-from alice_handler import handler
+def handler(event, context):
+	...
 </syntaxhighlight>
+
+Entry point в настройках функции: <code>cloud_function.handler</code>.
 
 == Шаги развёртывания ==
 
-1. Открой Yandex Cloud Console.
-2. Создай функцию в разделе Cloud Functions.
-3. Загрузите код архивом `.zip` из корня репозитория.
-4. Укажи entry point `cloud_function.handler`.
-5. Создай HTTP-trigger.
-6. Возьми публичный URL и используй его как webhook в Яндекс Диалогах.
+# Откройте Yandex Cloud Console.
+# Создайте функцию в разделе Cloud Functions.
+# Загрузите код архивом <code>alice-ycf-deploy.zip</code> из корня репозитория.
+# Укажите entry point <code>cloud_function.handler</code>.
+# Создайте HTTP-trigger.
+# Возьмите публичный URL и используйте его как webhook в Яндекс.Диалогах.
 
 == Проверка ==
 
-После публикации проверь:
+После публикации проверьте:
 <syntaxhighlight lang="bash">
-python verify_webhook.py https://твой-url
+python verify_webhook.py https://ваш-url
 </syntaxhighlight>
+
+== Мини-викторина ==
+
+# Что такое webhook в контексте навыка Алисы?
+# Какой entry point указывается для данного проекта в Yandex Cloud Functions?
+# Почему serverless-подход удобен для учебного навыка по сравнению с постоянно работающим сервером?

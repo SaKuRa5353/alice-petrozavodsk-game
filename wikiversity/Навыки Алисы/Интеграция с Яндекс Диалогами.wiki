@@ -2,28 +2,41 @@
 
 '''Подстраница курса «Навыки Алисы».'''
 
-Эта подстраница показывает, как устроен webhook-пayload и какой ответ ожидает Алиса.
+Эта подстраница показывает, как навык обменивается данными с платформой Яндекс.Диалоги.
+Когда пользователь пишет или говорит фразу, Яндекс.Диалоги отправляют HTTP-запрос (webhook) на сервер навыка.
+Сервер обрабатывает запрос и возвращает JSON-ответ, который Алиса озвучивает или показывает пользователю.
 
-== Минимальный payload ==
+== Ссылка на исходный код ==
+
+* Репозиторий проекта: [https://github.com/SaKuRa5353/alice-petrozavodsk-game alice-petrozavodsk-game].
+
+== Минимальный JSON-запрос (payload) ==
+
+Payload — это тело HTTP-запроса с данными о реплике пользователя и сессии.
 
 <syntaxhighlight lang="json">
 {
   "request": {
-    "original_utterance": "старт"
+    "original_utterance": "старт",
+    "command": "старт"
   },
   "session": {
     "new": true,
-    "user_id": "user-123"
+    "user_id": "user-123",
+    "application": {
+      "application_id": "app-123"
+    }
   }
 }
 </syntaxhighlight>
 
 == Что делает обработчик ==
 
-* читает `request` и `session`;
+* читает поля <code>request</code> и <code>session</code>;
 * определяет пользователя;
 * запускает игру или продолжает текущую;
-* возвращает JSON формата Яндекс Диалогов.
+* добавляет <code>session_state</code> для сохранения прогресса;
+* возвращает JSON формата Яндекс.Диалогов.
 
 == Формат ответа ==
 
@@ -32,14 +45,31 @@
   "version": "1.0",
   "response": {
     "text": "Ответ навыка",
-    "end_session": false
+    "end_session": false,
+    "card": {
+      "type": "BigImage",
+      "image_id": "12345/abcde",
+      "title": "Вторая подсказка",
+      "description": "Посмотри на изображение и попробуй ответить еще раз."
+    }
+  },
+  "session_state": {
+    "in_progress": true,
+    "score": 2,
+    "asked_count": 3
   }
 }
 </syntaxhighlight>
 
 == Проверка ==
 
-Проверяй webhook через:
+Проверить webhook можно командой:
 <syntaxhighlight lang="bash">
-python verify_webhook.py https://твой-url
+python verify_webhook.py https://ваш-url
 </syntaxhighlight>
+
+== Мини-викторина ==
+
+# Что передается в payload webhook-запроса?
+# Зачем в ответ навыка добавляется <code>session_state</code>?
+# Какую роль играет JSON-ответ в диалоге пользователя с Алисой?

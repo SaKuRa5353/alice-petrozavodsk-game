@@ -25,7 +25,6 @@ LANDMARKS = [
         "location": "Петровский сквер, рядом с Онежской набережной",
         "year": "1873",
         "image_hint_url": "https://ru.wikipedia.org/wiki/Памятник_Петру_I_(Петрозаводск)",
-        "image_id": "1533899/b3f57afe674a2212417a",
         "sources": [
             "https://ru.wikipedia.org/wiki/Памятник_Петру_I_(Петрозаводск)",
             "https://karelia.travel/"

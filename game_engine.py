@@ -11,6 +11,18 @@ from landmarks import LANDMARKS
 
 TOTAL_QUESTIONS = 5
 MAX_WRONG_ATTEMPTS = 3
+OBJECT_TYPE_STEMS = {
+    "площад",
+    "памятник",
+    "театр",
+    "музе",
+    "собор",
+    "парк",
+    "набережн",
+    "скульптур",
+    "вокзал",
+    "храм",
+}
 
 
 @dataclass
@@ -81,6 +93,23 @@ def _token_stems(text: str) -> set[str]:
     return {_stem_token(token) for token in tokens if token}
 
 
+def _extract_object_types(stems: set[str]) -> set[str]:
+    detected: set[str] = set()
+    for stem in stems:
+        for marker in OBJECT_TYPE_STEMS:
+            if stem.startswith(marker) or marker.startswith(stem):
+                detected.add(marker)
+                break
+    return detected
+
+
+def _is_object_type_stem(stem: str) -> bool:
+    for marker in OBJECT_TYPE_STEMS:
+        if stem.startswith(marker) or marker.startswith(stem):
+            return True
+    return False
+
+
 def _is_correct_answer(user_text: str, landmark: Dict) -> bool:
     normalized = normalize_text(user_text)
     candidates = [landmark["name"], *landmark.get("aliases", [])]
@@ -91,10 +120,31 @@ def _is_correct_answer(user_text: str, landmark: Dict) -> bool:
         if normalized == candidate or candidate in normalized:
             return True
 
-    # Fallback: if at least one stemmed token overlaps, accept as near match.
+    # Fallback: accept near match, but avoid mixing different object types
+    # (e.g. "памятник" should not match "площадь" even if names overlap).
     user_stems = _token_stems(user_text)
+    user_object_types = _extract_object_types(user_stems)
     for candidate in candidates:
-        if user_stems & _token_stems(candidate):
+        candidate_stems = _token_stems(candidate)
+        overlap = user_stems & candidate_stems
+        if not overlap:
+            continue
+
+        # Avoid accepting answer variants that only share a generic object word
+        # such as "парк" or "памятник".
+        overlap_non_type = {stem for stem in overlap if not _is_object_type_stem(stem)}
+        if not overlap_non_type:
+            continue
+
+        candidate_object_types = _extract_object_types(candidate_stems)
+        if (
+            candidate_object_types
+            and user_object_types
+            and not (candidate_object_types & user_object_types)
+        ):
+            continue
+
+        if overlap:
             return True
     return False
 
